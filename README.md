@@ -3,6 +3,7 @@
 
 [![Architecture](https://img.shields.io/badge/Architecture-AArch64%20(ARMv8--A)-007ACC.svg?style=for-the-badge&logo=arm)](https://github.com/mekserina)
 [![Target Silicon](https://img.shields.io/badge/Silicon-Raspberry%20Pi%204%20(BCM2711)-C51A4A.svg?style=for-the-badge&logo=raspberrypi)](https://github.com/mekserina)
+[![Whitepaper](https://img.shields.io/badge/Technical-Whitepaper%20v2.4-ff6f00.svg?style=for-the-badge&logo=googledocs)](WHITEPAPER.md)
 [![Language](https://img.shields.io/badge/Language-Rust%20(no__std)-DEA584.svg?style=for-the-badge&logo=rust)](https://github.com/mekserina)
 [![Formal Verification](https://img.shields.io/badge/Kani%20Proofs-279%2F279%20PASS%20(100%25)-4caf50.svg?style=for-the-badge)](https://github.com/mekserina)
 [![IPC SLA](https://img.shields.io/badge/RPC%20Latency-1.37%20%C2%B5s%20(2%2C056%20Cyc)-blueviolet.svg?style=for-the-badge)](https://github.com/mekserina)
