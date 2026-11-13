@@ -149,6 +149,9 @@ Unlike theoretical kernels confined to simulators (QEMU), KALEOS is fully operat
 * **Storage:** Arasan EMMC2 SDHCI Controller & VL805 PCIe xHCI USB 3.0.
 * **Console:** BCM2711 PL011 UART (`COM58` @ 115,200 baud).
 
+![KALEOS Live Silicon Desktop](assets/citadel_desktop_live.png)
+*Figure 2: Physical Broadcom BCM2711 silicon output captured directly over Gigabit VNC (RFB 003.008) running the Citadel Glassmorphic Compositor at 1080p 60 Hz.*
+
 ### 5.2 Silicon Invariants & Hardware Discipline:
 * **Zero Locks in Interrupt Handlers:** `el0_sync_handler`, `el1_sync_handler`, and `el0_irq_handler` execute without mutexes or spinlocks.
 * **Raw MMIO Telemetry:** Fatal exception paths bypass formatting allocations, streaming raw bytes directly to UART MMIO via `write_volatile`.

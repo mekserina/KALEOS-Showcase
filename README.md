@@ -35,6 +35,28 @@
 
 </div>
 
+### 🖥️ Native Userland Application Ecosystem (EL0 Isolated Micro-Services)
+> All native userland applications execute in isolated address spaces (EL0) communicating via non-blocking SPSC IPC channels to the Citadel Compositor (`kale_shell`).
+
+<div align="center">
+
+| Multitasking Sovereign Desktop Session | Real-Time 48 kHz PWM1 Audio Player |
+| :---: | :---: |
+| ![Multitasking Desktop](assets/citadel_desktop_multitasking.png) | ![Audio Player](assets/citadel_audio_player.png) |
+| *1024×768 Live Multi-Window Session with Sovereign Wallpaper* | *Real-time PWM1 stereo audio synthesis from 24-byte harmonic parameters* |
+
+| Interactive Citadel Shell & Terminal | Built-in Benchmark & Telemetry Suite |
+| :---: | :---: |
+| ![Citadel Terminal](assets/citadel_terminal_shell.png) | ![Citadel Benchmark](assets/citadel_bench_app.png) |
+| *Direct userland command prompt & pipeline execution* | *Hardware PMCCNTR / CNTVCT cycle counter live monitoring* |
+
+| WebAssembly MVP Sandbox Calculator | Autonomous Animus Decision Mind |
+| :---: | :---: |
+| ![Wasm Calculator](assets/citadel_wasm_calculator.png) | ![Animus Mind](assets/citadel_animus_mind.png) |
+| *Linear memory sandboxed Wasm bytecode execution* | *Autonomous stategraph & system telemetry reasoning agent* |
+
+</div>
+
 ---
 
 ## 🌟 Executive Vision: Why KALEOS?
@@ -85,6 +107,54 @@ flowchart TD
 
     HW <==>|MMIO Registers & Exceptions| EL1_TCB
     EL1_TCB <==>|Synchronous svc #0 Gate| EL0_SERVICES
+```
+
+### ⚡ Live Two-Process Synchronous RPC Sequence (p50: 2,056 Cycles / 1.37 µs)
+The following sequence details the exact hardware path executed between isolated EL0 processes on physical Cortex-A72 silicon:
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant Client as EL0 Client (PID 15)
+    participant Kernel as 👑 EL1 Microkernel (KALEOS)
+    participant Server as EL0 Echo Server (PID 14)
+
+    Note over Client: PMCCNTR_EL0 start (CPU cycle timestamp)
+    Client->>Kernel: svc #0 (SYS_CALL_IPC: target=14, token)
+    activate Kernel
+    Note over Kernel: 288-byte Context Save (FPU-Free)<br/>Capability Token Verification<br/>Direct Thread Switch (Lockless Affinity)<br/>ARMv8 MMU TTBR0 Address Space Swap
+    Kernel->>Server: eret (Supervisor Return)
+    deactivate Kernel
+    activate Server
+    Note over Server: Process Payload & Issue Reply
+    Server->>Kernel: svc #0 (SYS_REPLY_RECV_IPC: reply_to=15)
+    deactivate Server
+    activate Kernel
+    Note over Kernel: 288-byte Context Save<br/>Restore Client TTBR0 & Registers
+    Kernel->>Client: eret (Supervisor Return)
+    deactivate Kernel
+    Note over Client: PMCCNTR_EL0 stop: p50 = 2,056 cycles (~1.37 µs)
+```
+
+### 🛡️ Memory Architecture & Partitioning (TTBR0 vs TTBR1)
+KALEOS enforces strict physical and virtual memory partitioning via ARMv8-A MMU translation tables:
+
+```mermaid
+graph TD
+    subgraph VA_SPACE["AArch64 64-bit Virtual Memory Architecture"]
+        direction TB
+        subgraph TTBR1["👑 TTBR1 Kernel High-VA (0xFFFF_0000_0000_0000 - Privileged EL1)"]
+            K_TEXT["Kernel .text & Exception Vector Table (0xFFFF000000081800)"]
+            K_HEAP["Slab/Slub + Buddy Allocator (8 Size Classes: 16B - 2KB)"]
+            K_SHM["Global SPSC Shared Ring Buffer Pool (16 MB @ 0x21000000)"]
+            K_MMIO["BCM2711 MMIO Hardware Peripherals (PL011 UART, GICv2, Mailbox)"]
+        end
+        subgraph TTBR0["🌐 TTBR0 Userland Low-VA (0x0000_0000_0000_0000 - Isolated EL0)"]
+            U_TEXT["Process .text Executable (W^X DEP Hardware Enforced)"]
+            U_STACK["Thread Stack Bounded Allocation (8 KB / 16 KB)"]
+            U_SHM["Pre-Mapped Shared Memory Descriptors (Asymmetric RO / RW)"]
+        end
+    end
 ```
 
 ---
