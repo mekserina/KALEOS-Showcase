@@ -1,0 +1,131 @@
+==================================================================
+KALEOS v1.0 LIVE SILICON BOOT TELEMETRY & BENCHMARK LOG
+Hardware Platform : Raspberry Pi 4 Model B (Broadcom BCM2711 / Cortex-A72)
+Board Revision    : 0xD03114 (8192 MB LPDDR4-3200 SDRAM)
+Architecture      : AArch64 (ARMv8-A 64-bit SMP)
+Serial Telemetry  : BCM2711 PL011 UART (115,200 baud, 8N1)
+Kernel Mode       : Bare-Metal Pure Microkernel (#![no_std], EL1 Rust, FPU-Free)
+==================================================================
+
+!RAUS
+======================================
+[KALEOS v1.0] INITIALIZING SYSTEM
+Target: Custom Hardware (MIDR: 0x410FD083, Part: 0xD08)
+Hardware Discovery: FDT is Active at 0x2EFF1C00
+======================================
+
+ _  __     _      _      ______ ____   _____ 
+ | |/ /    / \    | |    |  ____/ __ \ / ____|
+ | ' /    / _ \   | |    | |__ | |  | | (___  
+ |  <    / ___ \  | |    |  __|| |  | |\___ \ 
+ | . \  / /   \ \ | |____| |___| |__| |____) |
+ |_|\_\/_/     \_\|______|______\____/|_____/ 
+ [ KALEOS v1.0 - AArch64 Pure Microkernel | Rust EL1 ]
+==================================================================
+[DeviceInfo] Parsing FDT at 0x2eff1c00...
+[DeviceInfo] CPU 0 enable-method: spin-table
+[DeviceInfo] CPU 0 cpu-release-addr: 0xd8
+[DeviceInfo] CPU 1 enable-method: spin-table
+[DeviceInfo] CPU 1 cpu-release-addr: 0xe0
+[DeviceInfo] CPU 2 enable-method: spin-table
+[DeviceInfo] CPU 2 cpu-release-addr: 0xe8
+[DeviceInfo] CPU 3 enable-method: spin-table
+[DeviceInfo] CPU 3 cpu-release-addr: 0xf0
+[DeviceInfo] FDT Memory Bank 0: 0x0..0x3B300000 (947 MB)
+[DeviceInfo] FDT Memory Bank 1: 0x40000000..0xFC000000 (3008 MB)
+[DeviceInfo] FDT Memory Bank 2: 0x100000000..0x180000000 (2048 MB)
+[DeviceInfo] FDT Memory Bank 3: 0x180000000..0x200000000 (2048 MB)
+[DeviceInfo] Discovery Complete:
+  - Memory: 0x0 (8051 MB)
+  - CPUs:   4 (PSCI: false)
+    Core 1: release-addr = 0xe0
+    Core 2: release-addr = 0xe8
+    Core 3: release-addr = 0xf0
+  - UART:   0x7e201a00
+  - GIC:    Dist=0x40041000, Redist=0x40042000
+  - TSENS:  0xfd5d2000
+[DeviceInfo] Physical Memory Discovered: 8051 MB (Base: 0x0)
+[HAL] Hardware Abstraction Layer initialized with dynamic device map.
+[PHASE 1] HAL: Hardware Discovery initialized via FDT.
+[PHASE 2] MEMORY: Initializing Hardware-Aware Dynamic Physical Memory Manager.
+[MEMORY] Initializing Hardware-Aware Dynamic Memory Manager...
+[MEMORY] Detected Board Hardware RAM: 8051 MB (Base: 0x0)
+[MEMORY] Zone 1 (Primary Low-Memory Pool): 0x1000000..0x21000000 (512 MB)
+[Buddy] Global instance active: 0x1000000 (512 MB)
+[Buddy] 131072 pages free across 64 max-order blocks (frag: 0%)
+[MEMORY] Zone 2 (Reclaimed Low-RAM Gap): 0x28000000..0x3E000000 (352 MB)
+[Buddy] Extended pool: 0x28000000..0x3E000000 (+352 MB, total: 864 MB, free: 864 MB)
+[MEMORY] Zone 3 (Extended Board High-RAM): 0x40000000..0xF8000000 (2944 MB)
+[Buddy] Extended pool: 0x40000000..0xF8000000 (+2944 MB, total: 3808 MB, free: 3808 MB)
+[MEMORY] Zone 4 (Upper High-RAM 4GB-8GB): 0x100000000..0x1F7300000 (3955 MB)
+[Buddy] Extended pool: 0x100000000..0x1F7300000 (+3955 MB, total: 7763 MB, free: 7760 MB)
+[MEMORY] Dynamic Memory Self-Correction Complete. Total Managed: 7763 MB, Free: 7760 MB.
+[PHASE 3] MMU: Activating hardware page translation and memory protection.
+[MMU] Mapping RAM (Identity + High)...
+[MMU] Mapping Peripherals...
+[MMU] Mapping Framebuffer (DEVICE)...
+[MMU] Mapping GPU & Generic DMA Region (NNC)...
+[MMU] Activating Page Tables...
+[MMU] Virtual Memory Active.
+[CP-00] High VA entry OK
+[SHM] Global Shared Memory Pool (16MB) ready at 0x21000000
+[Heap] Slab/Slub + Buddy hybrid allocator active.
+[SLAB] Heap virtual range: 0xFFFF00008E000000 - 0xFFFF000090000000
+[SLAB] 8 size classes active: 16B, 32B, 64B, 128B, 256B, 512B, 1KB, 2KB
+[SLAB] Buddy integration: on-demand 4KB page backing, zero-leak recycling.
+[Heap] Dynamic memory architecture secured.
+[OOM-SENTINEL] Proactive Memory Sentinel Active (Thresholds: Low=32MB, Crit=16MB, Quota=64MB).
+[EXC] Vector Table installed at 0xFFFF000000081800 (High VA)
+[CP-01] Memory services OK
+[RPi4] Hardware Board Revision: 0xD03114 (Raspberry Pi 4 Model B, 8192 MB RAM)
+[PHASE 4] GIC: Interrupt controller and registered IPI/IRQ routing initialized.
+[GICv2] GIC Distributor & CPU Interface initialized on Core 0
+[CP-02] Interrupts+GFX OK
+[PHASE 6] SECURITY: Security Enclave Co-Processor and Audio DMA channel initialized.
+[RNG] Broadcom BCM2711 Hardware TRNG initialized at 0xFE104000.
+[CAP] BCM2711 HW TRNG Active: 256-bit physical thermal entropy seeded into HMAC Master Secret.
+[CAP] HMAC Master Secret initialized with runtime entropy.
+[CRYPTO_HW] Secure Enclave hardware co-processor protected via MmioGuard at 0x8D000000.
+[AUDIO_HW] BCM2711 3.5mm Analog Audio (GPIO 40/41 ALT0) & PWM 48kHz initialized.
+[UNICAM] BCM2711 MIPI CSI-2 Unicam 1 initialized (320x240 @ RAW8, DMA: 0xffff000000534d18).
+[CAMERA] KALEOS Dual-Source Camera Subsystem online (MIPI CSI-2 + USB UVC Webcam, 320x240).
+[CP-03] Security OK
+
+... [SYSTEM INITIALIZATION & SERVICE BRINGUP COMPLETE] ...
+
+[PERF SLA] ==========================================================
+[PERF SLA]       KALEOS PERFORMANCE REGRESSION & SLA SUITE
+[PERF SLA] ==========================================================
+[PERF SLA][IPC] Testing Zero-Copy Ring Buffer Latency SLA...
+[PERF SLA][IPC] Avg IPC Ring Latency: 3 cycles (~2 ns) | SLA Threshold: <10 us (<= 500 cycles)
+[PERF SLA][MEM] Testing Buddy Allocator 4KB Page Allocation SLA...
+[PERF SLA][MEM] Avg Frame Alloc/Free Latency: 9 cycles (SLA Threshold: 5000 cycles)
+[PERF SLA][CAP] Testing Capability Token Verification SLA...
+[PERF SLA][CAP] Avg Capability Grant Latency: 363 cycles
+[PERF SLA][CAP] Avg Capability Validation Latency: 14 cycles (SLA Threshold: 250 cycles)
+[PERF SLA] ----------------------------------------------------------
+[PERF SLA] [PASS] ALL PERFORMANCE REGRESSION SLAs MET SUCCESSFULLY.
+[PERF SLA] ==========================================================
+
+[BENCH] ==================================================================
+[BENCH]              KALEOS HIGH-PERFORMANCE IPC PERFORMANCE SWEEP
+[BENCH] ==================================================================
+[BENCH]  Comparing Copy-Based IPC (memcpy) vs Static Zero-Copy IPC (SRB)
+[BENCH]  Cycle counts measured directly via ARM64 PMU / Monotonic Cycles.
+[BENCH] ------------------------------------------------------------------
+[BENCH]  Size       | Copy-Based (memcpy) | Static Zero-Copy   | Improvement
+[BENCH] ------------------------------------------------------------------
+[BENCH]  64 B       |               5 cyc |              3 cyc | 1.6x faster
+[BENCH]  128 B      |              10 cyc |              3 cyc | 3.3x faster
+[BENCH]  256 B      |              19 cyc |              3 cyc | 6.3x faster
+[BENCH]  512 B      |              37 cyc |              3 cyc | 12.3x faster
+[BENCH]  1 KB       |              74 cyc |              3 cyc | 24.6x faster
+[BENCH]  2 KB       |             148 cyc |              3 cyc | 49.3x faster
+[BENCH] ------------------------------------------------------------------
+[BENCH]  Zero-Copy performance is independent of transfer size due to
+[BENCH]  KALEOS pre-mapped Shared Memory and SPSC ring buffers.
+[BENCH] ==================================================================
+
+------------------------------------------------------------------
+[SUCCESS] TEST SONUCU: KALEOS EKOSISTEMI KARARLI.
+------------------------------------------------------------------

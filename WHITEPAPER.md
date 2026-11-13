@@ -247,6 +247,8 @@ KALEOS employs the **Kani Rust Verifier (SAT/SMT solver)** to formally prove tha
 | **256 Kilobytes** | 70,782 cycles | **24 cycles** | **2,949.2× faster** |
 | **1 Megabyte** | 283,451 cycles | **24 cycles** | **11,810.4× faster** |
 
+*Note: The 24-cycle latency corresponds to the bounded $O(1)$ SPSC descriptor handoff across shared memory buffers, which eliminates $O(N)$ physical memory copy bottlenecks (`memcpy`). Detailed hardware proof: [`assets/uart_silicon_boot.log`](assets/uart_silicon_boot.log).*
+
 ### 9.3 Cross-Architecture Comparative Matrix
 
 | Architectural Metric | Monolithic Linux (arm64) | seL4 Microkernel (AArch64) | QNX Neutrino RTOS | **KALEOS (BCM2711)** |

@@ -117,6 +117,10 @@ KALEOS implements lock-free **Single-Producer Single-Consumer (SPSC) Shared Ring
 | **256 Kilobytes** | 70,782 cycles | **24 cycles** | **2,949.2× faster** | 16 ns |
 | **1 Megabyte** | 283,451 cycles | **24 cycles** | **11,810.4× faster** | 16 ns |
 
+> **Technical Architecture Note:** The 24-cycle measurement represents the strictly bounded $O(1)$ lock-free SPSC queue descriptor exchange overhead (registering and consuming buffer address pointers, size attributes, and capability security tokens). By utilizing pre-mapped shared memory pages, KALEOS eliminates the linear $O(N)$ physical memory copying (`memcpy`) bottleneck across process address space boundaries.
+
+> **Empirical UART Verification:** The live Raspberry Pi 4 serial console output confirming these hardware measurements is published in [`assets/uart_silicon_boot.log`](assets/uart_silicon_boot.log).
+
 ```
 Cycles
 280,000 ┼                                                  ● Traditional memcpy (O(N))

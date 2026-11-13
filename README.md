@@ -5,8 +5,9 @@
 [![Target Silicon](https://img.shields.io/badge/Silicon-Raspberry%20Pi%204%20(BCM2711)-C51A4A.svg?style=for-the-badge&logo=raspberrypi)](https://github.com/mekserina)
 [![Whitepaper](https://img.shields.io/badge/Technical-Whitepaper%20v2.4-ff6f00.svg?style=for-the-badge&logo=googledocs)](WHITEPAPER.md)
 [![Language](https://img.shields.io/badge/Language-Rust%20(no__std)-DEA584.svg?style=for-the-badge&logo=rust)](https://github.com/mekserina)
-[![Formal Verification](https://img.shields.io/badge/Kani%20Proofs-279%2F279%20PASS%20(100%25)-4caf50.svg?style=for-the-badge)](https://github.com/mekserina)
+[![Formal Verification](https://img.shields.io/badge/Kani%20Proofs-279%2F279%20PASS%20(100%25)-4caf50.svg?style=for-the-badge)](VERIFICATION.md)
 [![Hardware Benchmarks](https://img.shields.io/badge/Hardware-Benchmarks%20Report-success.svg?style=for-the-badge&logo=speedtest)](BENCHMARKS.md)
+[![Silicon UART](https://img.shields.io/badge/Silicon%20Log-UART%20Verified-brightgreen.svg?style=for-the-badge&logo=gnubash)](assets/uart_silicon_boot.log)
 [![IPC SLA](https://img.shields.io/badge/RPC%20Latency-1.37%20%C2%B5s%20(2%2C056%20Cyc)-blueviolet.svg?style=for-the-badge)](BENCHMARKS.md)
 [![Compositor](https://img.shields.io/badge/UI-Citadel%20Glassmorphic%20OS-00ffff.svg?style=for-the-badge)](https://github.com/mekserina)
 
@@ -149,6 +150,8 @@ All metrics below are measured directly on physical **Broadcom BCM2711 silicon (
 | **64 Kilobytes** | 17,697 cycles | **24 cycles** | **737.3× faster** |
 | **256 Kilobytes** | 70,782 cycles | **24 cycles** | **2,949.2× faster** |
 | **1 Megabyte** | 283,451 cycles | **24 cycles** | **11,810.4× faster** |
+
+*Note: The 24-cycle latency corresponds to the $O(1)$ SPSC ring buffer descriptor handoff across shared pages, completely eliminating $O(N)$ physical memory copy bottlenecks (`memcpy`). Live UART console log: [`assets/uart_silicon_boot.log`](assets/uart_silicon_boot.log).*
 
 ### 3. Cross-Architecture Comparative Matrix
 
