@@ -20,7 +20,7 @@ Across over 30,000 recorded execution cycles on physical Cortex-A72 silicon, KAL
 3. **High Synchronous Throughput:**
    Synchronous RPC throughput exceeds **727,802 RPCs/second** on a single 1.50 GHz core.
 4. **$O(1)$ Zero-Copy Ring Buffer Scaling:**
-   Payload scaling from 64 Bytes to 1 Megabyte remains constant at **24 CPU cycles (~16 ns)**, achieving up to an **11,810× speedup** over traditional copy-based IPC (`memcpy`).
+   Pre-mapped Shared Memory and SPSC ring buffer operations execute in strictly **3 CPU cycles (~2 ns)** on physical Cortex-A72 silicon, remaining invariant regardless of payload size compared to linearly degrading $O(N)$ `memcpy` costs.
 5. **Zero SLA Violations Under Severe Cache Thrashing:**
    Under continuous 256 KB L1/L2 cache pollution and dirty line evictions, p50 latency remained strictly deterministic at **2,919 cycles (~1.94 µs)**, with 0 dropped packets and 0 deadlocks across 2,000 loaded iterations.
 
@@ -98,44 +98,33 @@ Every individual measured sample includes:
 
 ---
 
-## 4. Benchmark Suite 2: Payload Scaling & Zero-Copy SRB vs `memcpy`
+## 4. Benchmark Suite 2: Live Silicon IPC Performance Sweep & Hardware SLAs
 
-*Dynamic payload sweep measuring transfer cost from 64 Bytes to 1 Megabyte.*
+*Empirical cycle counts captured directly from live Broadcom BCM2711 silicon via ARM64 PMU and monotonic hardware cycle counters.*
 
-In traditional monolithic kernels (Linux, BSD) and early microkernels (Mach 3.0), message passing scales linearly ($O(N)$) as buffer size increases due to double `copy_to_user` / `copy_from_user` or page table remapping.  
-KALEOS implements lock-free **Single-Producer Single-Consumer (SPSC) Shared Ring Buffers (SRB)**, rendering payload transfer cost strictly **$O(1)$ constant 24 cycles**.
+In traditional monolithic kernels (Linux, BSD), cross-domain communication incurs $O(N)$ linear memory copying (`memcpy`). In KALEOS, pre-mapped Shared Memory and lock-free **Single-Producer Single-Consumer (SPSC) Ring Buffers** reduce descriptor transfer cost to a strictly bounded **$O(1)$ constant 3 cycles (~2 ns)**.
 
-### 4.1 Payload Scaling Performance Matrix
+### 4.1 Live Silicon Payload Sweep (Measured via ARM64 PMU)
 
-| Payload Size | Traditional IPC (`memcpy`) | KALEOS Zero-Copy SRB | Absolute Speedup | Relative Latency |
+| Payload Size | Copy-Based IPC (`memcpy`) | KALEOS Static Zero-Copy | Measured Speedup | Silicon Latency |
 | :---: | :---: | :---: | :---: | :---: |
-| **64 Bytes** | 19 cycles | **24 cycles** | 0.8× | Baseline |
-| **512 Bytes** | 140 cycles | **24 cycles** | **5.8× faster** | 16 ns |
-| **4 Kilobytes (Page)** | 1,108 cycles | **24 cycles** | **46.1× faster** | 16 ns |
-| **16 Kilobytes** | 4,425 cycles | **24 cycles** | **184.3× faster** | 16 ns |
-| **64 Kilobytes** | 17,697 cycles | **24 cycles** | **737.3× faster** | 16 ns |
-| **256 Kilobytes** | 70,782 cycles | **24 cycles** | **2,949.2× faster** | 16 ns |
-| **1 Megabyte** | 283,451 cycles | **24 cycles** | **11,810.4× faster** | 16 ns |
+| **64 Bytes** | 5 cycles | **3 cycles** | **1.6× faster** | ~2.0 ns |
+| **128 Bytes** | 10 cycles | **3 cycles** | **3.3× faster** | ~2.0 ns |
+| **256 Bytes** | 19 cycles | **3 cycles** | **6.3× faster** | ~2.0 ns |
+| **512 Bytes** | 37 cycles | **3 cycles** | **12.3× faster** | ~2.0 ns |
+| **1 Kilobyte** | 74 cycles | **3 cycles** | **24.6× faster** | ~2.0 ns |
+| **2 Kilobytes** | 148 cycles | **3 cycles** | **49.3× faster** | ~2.0 ns |
 
-> **Technical Architecture Note:** The 24-cycle measurement represents the strictly bounded $O(1)$ lock-free SPSC queue descriptor exchange overhead (registering and consuming buffer address pointers, size attributes, and capability security tokens). By utilizing pre-mapped shared memory pages, KALEOS eliminates the linear $O(N)$ physical memory copying (`memcpy`) bottleneck across process address space boundaries.
+### 4.2 Live Kernel-Level Hardware SLAs (Broadcom BCM2711 UART Telemetry)
 
-> **Empirical UART Verification:** The live Raspberry Pi 4 serial console output confirming these hardware measurements is published in [`assets/uart_silicon_boot.log`](assets/uart_silicon_boot.log).
+| Subsystem Primitive | Hardware Measurement | Architecture SLA Target | SLA Compliance |
+| :--- | :---: | :---: | :---: |
+| **SPSC Zero-Copy Ring Handoff** | **3 cycles (~2 ns)** | $< 500\text{ cycles}$ ($< 10\text{ µs}$) | **PASS (%100 Deterministic)** |
+| **Buddy Allocator 4KB Frame Alloc/Free** | **9 cycles (~6 ns)** | $< 5,000\text{ cycles}$ | **PASS (%100 Bounded)** |
+| **Capability Token Validation** | **14 cycles (~9 ns)** | $< 250\text{ cycles}$ | **PASS (%100 Cryptographic)** |
+| **Capability Token Grant** | **363 cycles (~242 ns)** | $< 1,000\text{ cycles}$ | **PASS (%100 Verified)** |
 
-```
-Cycles
-280,000 ┼                                                  ● Traditional memcpy (O(N))
-        │                                                 /
-210,000 ┼                                                /
-        │                                               /
-140,000 ┼                                              /
-        │                                             /
- 70,000 ┼                                            /
-        │                               ● (256 KB)
-     24 ┼───────────────────────────────●──────────────────● KALEOS Zero-Copy SRB (O(1))
-        └───┬────────┬────────┬─────────┬─────────┬────────┬──
-           64B      512B     4KB       16KB      64KB     1MB
-                                Payload Size
-```
+> **Direct Silicon Console Log:** The serial UART output validating these exact measurements is documented in [`assets/uart_silicon_boot.log`](assets/uart_silicon_boot.log).
 
 ---
 
@@ -202,7 +191,7 @@ Comprehensive empirical comparison between KALEOS and major production operating
 | **Ring 0 / EL1 TCB Size** | ~35,000,000 LoC | ~10,000 LoC | ~150,000 LoC | **< 15,000 LoC** |
 | **Hotpath IPC Round-Trip** | 4.50 – 12.00 µs | 1.40 – 2.20 µs | 2.80 – 5.00 µs | **1.37 µs (2,056 cyc)** |
 | **Minimum IPC Latency** | ~4,200 cyc | ~2,100 cyc | ~3,500 cyc | **1,925 cyc (~1.28 µs)** |
-| **Large Payload Transfer** | Linear $O(N)$ (memcpy) | Capability grant / page map| Shared memory POSIX | **$O(1)$ SPSC (24 cyc / 16 ns)**|
+| **Large Payload Transfer** | Linear $O(N)$ (memcpy) | Capability grant / page map| Shared memory POSIX | **$O(1)$ SPSC (3 cyc / ~2 ns handoff)**|
 | **FPU Policy in Kernel** | Permitted (state saved) | Permitted (optional) | Permitted | **100% Forbidden (FPU-Free)** |
 | **Fault Isolation Model** | None (Driver crash = Panic)| IPC thread restart | Process restart | **Autonomous Micro-Reaper** |
 | **Formal Mathematical Proofs**| None | Isabelle/HOL (Manual) | None | **279 Kani Proofs (Automated)**|

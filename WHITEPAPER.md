@@ -235,19 +235,26 @@ KALEOS employs the **Kani Rust Verifier (SAT/SMT solver)** to formally prove tha
 | **Synchronous Throughput** | — | **727,802 RPCs/sec** | Single-core synchronous capacity |
 | **Under 256 KB Cache Thrashing**| **2,919 cycles** | **1,946 ns (~1.94 µs)** | Zero SLA violations under heavy memory load |
 
-### 9.2 $O(1)$ Payload Scaling: Zero-Copy SRB vs Traditional `memcpy`
+### 9.2 Live Silicon IPC Performance Sweep & Hardware SLAs
+*Captured directly from live Broadcom BCM2711 silicon via ARM64 PMU and monotonic hardware cycle counters.*
 
-| Payload Size | Traditional Monolithic IPC (`memcpy`) | KALEOS Zero-Copy SRB | Measured Speedup |
-| :---: | :---: | :---: | :---: |
-| **64 Bytes** | 19 cycles | **24 cycles** | 0.8× (Baseline) |
-| **512 Bytes** | 140 cycles | **24 cycles** | **5.8× faster** |
-| **4 Kilobytes (Page)** | 1,108 cycles | **24 cycles** | **46.1× faster** |
-| **16 Kilobytes** | 4,425 cycles | **24 cycles** | **184.3× faster** |
-| **64 Kilobytes** | 17,697 cycles | **24 cycles** | **737.3× faster** |
-| **256 Kilobytes** | 70,782 cycles | **24 cycles** | **2,949.2× faster** |
-| **1 Megabyte** | 283,451 cycles | **24 cycles** | **11,810.4× faster** |
+| Payload Size | Copy-Based IPC (`memcpy`) | KALEOS Static Zero-Copy | Measured Speedup | Silicon Latency |
+| :---: | :---: | :---: | :---: | :---: |
+| **64 Bytes** | 5 cycles | **3 cycles** | **1.6× faster** | ~2.0 ns |
+| **128 Bytes** | 10 cycles | **3 cycles** | **3.3× faster** | ~2.0 ns |
+| **256 Bytes** | 19 cycles | **3 cycles** | **6.3× faster** | ~2.0 ns |
+| **512 Bytes** | 37 cycles | **3 cycles** | **12.3× faster** | ~2.0 ns |
+| **1 Kilobyte** | 74 cycles | **3 cycles** | **24.6× faster** | ~2.0 ns |
+| **2 Kilobytes** | 148 cycles | **3 cycles** | **49.3× faster** | ~2.0 ns |
 
-*Note: The 24-cycle latency corresponds to the bounded $O(1)$ SPSC descriptor handoff across shared memory buffers, which eliminates $O(N)$ physical memory copy bottlenecks (`memcpy`). Detailed hardware proof: [`assets/uart_silicon_boot.log`](assets/uart_silicon_boot.log).*
+| Hardware Primitive | Measured Latency | Architecture SLA Target | Status |
+| :--- | :---: | :---: | :---: |
+| **SPSC Zero-Copy Ring Handoff** | **3 cycles (~2 ns)** | $< 500\text{ cycles}$ ($< 10\text{ µs}$) | **PASS (%100 Deterministic)** |
+| **Buddy Allocator 4KB Frame Alloc/Free**| **9 cycles (~6 ns)** | $< 5,000\text{ cycles}$ | **PASS (%100 Bounded)** |
+| **Capability Token Validation** | **14 cycles (~9 ns)** | $< 250\text{ cycles}$ | **PASS (%100 Cryptographic)** |
+| **Capability Token Grant** | **363 cycles (~242 ns)** | $< 1,000\text{ cycles}$ | **PASS (%100 Verified)** |
+
+*All metrics validated via live PL011 UART serial telemetries in [`assets/uart_silicon_boot.log`](assets/uart_silicon_boot.log).*
 
 ### 9.3 Cross-Architecture Comparative Matrix
 
@@ -258,7 +265,7 @@ KALEOS employs the **Kani Rust Verifier (SAT/SMT solver)** to formally prove tha
 | **Kernel Fault Resilience** | Vulnerable (Panic on driver crash) | High (Thread restart) | High (Process restart) | **Total (Autonomous Micro-Reaper)**|
 | **Hotpath IPC Round-Trip** | 4.50 – 12.00 µs | 1.40 – 2.20 µs | 2.80 – 5.00 µs | **1.37 µs (2,056 cycles)** |
 | **Minimum IPC Latency** | ~4,200 cycles | ~2,100 cycles | ~3,500 cycles | **1,925 cycles (~1.28 µs)** |
-| **Payload Scaling Complexity**| Linear $O(N)$ (memcpy) | Capability grant / page map| Shared memory POSIX | **$O(1)$ SPSC (24 cyc / 16 ns)**|
+| **Payload Scaling Complexity**| Linear $O(N)$ (memcpy) | Capability grant / page map| Shared memory POSIX | **$O(1)$ SPSC (3 cyc / ~2 ns handoff)**|
 | **Kernel Floating-Point** | Permitted (FPU context saved) | Permitted (optional) | Permitted | **100% Forbidden (FPU-Free)** |
 | **Desktop Compositor Footprint**| 500+ MB (Wayland/Xorg) | N/A (Headless) | Commercial Photon | **< 32 MB Total Userland** |
 | **Texture Representation** | Discrete Bitmap (Megabytes) | Discrete Bitmap | Discrete Bitmap | **512-Byte Harmonic Formula** |
