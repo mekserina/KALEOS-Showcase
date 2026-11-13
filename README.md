@@ -24,7 +24,7 @@
 
 ![KALEOS Citadel OS Desktop](assets/citadel_desktop_live.png)
 
-*Figure 1: KALEOS Citadel Glassmorphic Desktop (PID 10) running at 1080p 60 Hz on bare-metal ARM64. Features zero-copy double-buffering, an auto-hide avionic dock, and real-time system telemetry.*
+*Figure 1: KALEOS Citadel Glassmorphic Desktop (PID 10) running at 1080p 60 Hz on physical Broadcom BCM2711 silicon. Features zero-copy double-buffering, an auto-hide avionic dock, and real-time system telemetry.*
 
 <div align="center">
 
@@ -35,25 +35,15 @@
 
 </div>
 
-### 🖥️ Native Userland Application Ecosystem (EL0 Isolated Micro-Services)
-> All native userland applications execute in isolated address spaces (EL0) communicating via non-blocking SPSC IPC channels to the Citadel Compositor (`kale_shell`).
+### 🔬 Physical Hardware Soak Test & Network Sessions (1080p BCM2711)
+> All captures below represent real-time physical silicon execution on Raspberry Pi 4 Model B (Broadcom BCM2711, 4x Cortex-A72 @ 1.50 GHz, 8 GB RAM) over Gigabit VNC (RFB 003.008):
 
 <div align="center">
 
-| Multitasking Sovereign Desktop Session | Real-Time 48 kHz PWM1 Audio Player |
+| 28-Hour Continuous Bare-Metal Soak Test Session | Dual-Homed Gigabit Network & Active Shell |
 | :---: | :---: |
-| ![Multitasking Desktop](assets/citadel_desktop_multitasking.png) | ![Audio Player](assets/citadel_audio_player.png) |
-| *1024×768 Live Multi-Window Session with Sovereign Wallpaper* | *Real-time PWM1 stereo audio synthesis from 24-byte harmonic parameters* |
-
-| Interactive Citadel Shell & Terminal | Built-in Benchmark & Telemetry Suite |
-| :---: | :---: |
-| ![Citadel Terminal](assets/citadel_terminal_shell.png) | ![Citadel Benchmark](assets/citadel_bench_app.png) |
-| *Direct userland command prompt & pipeline execution* | *Hardware PMCCNTR / CNTVCT cycle counter live monitoring* |
-
-| WebAssembly MVP Sandbox Calculator | Autonomous Animus Decision Mind |
-| :---: | :---: |
-| ![Wasm Calculator](assets/citadel_wasm_calculator.png) | ![Animus Mind](assets/citadel_animus_mind.png) |
-| *Linear memory sandboxed Wasm bytecode execution* | *Autonomous stategraph & system telemetry reasoning agent* |
+| ![28h Soak Test](assets/citadel_soak_test_28h.png) | ![Network Active Session](assets/citadel_network_active.png) |
+| *28 hours uninterrupted continuous execution with 0 memory leaks* | *Simultaneous Ethernet/Wi-Fi stack (PID 5) & active interactive shell (PID 10)* |
 
 </div>
 
