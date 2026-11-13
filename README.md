@@ -7,9 +7,14 @@
 [![Language](https://img.shields.io/badge/Language-Rust%20(no__std)-DEA584.svg?style=for-the-badge&logo=rust)](https://github.com/mekserina)
 [![Formal Verification](https://img.shields.io/badge/Kani%20Proofs-279%2F279%20PASS%20(100%25)-4caf50.svg?style=for-the-badge)](VERIFICATION.md)
 [![Hardware Benchmarks](https://img.shields.io/badge/Hardware-Benchmarks%20Report-success.svg?style=for-the-badge&logo=speedtest)](BENCHMARKS.md)
+[![Space Standards](https://img.shields.io/badge/Space%20Standards-CCSDS%20%7C%20ECSS%20PUS-blue.svg?style=for-the-badge&logo=nasa)](COMPLIANCE.md)
+[![Auditor Guide](https://img.shields.io/badge/Auditor-Q%26A%20Guide-orange.svg?style=for-the-badge&logo=googledocs)](EVALUATION_GUIDE.md)
 [![Silicon UART](https://img.shields.io/badge/Silicon%20Log-UART%20Verified-brightgreen.svg?style=for-the-badge&logo=gnubash)](assets/uart_silicon_boot.log)
 [![IPC SLA](https://img.shields.io/badge/RPC%20Latency-1.37%20%C2%B5s%20(2%2C056%20Cyc)-blueviolet.svg?style=for-the-badge)](BENCHMARKS.md)
 [![Compositor](https://img.shields.io/badge/UI-Citadel%20Glassmorphic%20OS-00ffff.svg?style=for-the-badge)](https://github.com/mekserina)
+
+> 📚 **Core Technical Documentation & Verification Catalog:**  
+> [**Technical Whitepaper**](WHITEPAPER.md) • [**Silicon Benchmarks Report**](BENCHMARKS.md) • [**279 Kani Proofs Inventory**](VERIFICATION.md) • [**Aerospace Compliance (CCSDS/ECSS)**](COMPLIANCE.md) • [**Auditor & Peer Review Q&A**](EVALUATION_GUIDE.md) • [**Raw UART Telemetry**](assets/uart_silicon_boot.log)
 
 ---
 
