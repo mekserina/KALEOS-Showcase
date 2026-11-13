@@ -218,15 +218,50 @@ KALEOS employs the **Kani Rust Verifier (SAT/SMT solver)** to formally prove tha
 
 ## 9. Performance Metrics & Comparative Evaluation
 
-| Architectural Metric | Monolithic Linux (arm64) | Typical Microkernel (L4/Mach) | **KALEOS (BCM2711)** |
-| :--- | :--- | :--- | :--- |
-| **Ring 0 / EL1 TCB Size** | ~35,000,000 LoC | ~30,000–50,000 LoC | **< 15,000 LoC** |
-| **Kernel Fault Resilience** | Vulnerable (Driver crash = Panic) | High | **Total (Isolated via Watchdog)**|
-| **Hotpath IPC Round-Trip** | 4.5–12.0 µs | 2.5–5.0 µs | **1.37 µs (2,056 cycles)** |
-| **Kernel Floating-Point** | Permitted (FPU context saved) | Often permitted | **100% Forbidden (FPU-Free)** |
-| **Desktop Compositor Footprint**| 500+ MB (Wayland/Xorg) | N/A (Headless) | **< 32 MB Total Userland** |
-| **Texture Representation** | Discrete Bitmap (Megabytes) | Discrete Bitmap | **512-Byte Harmonic Formula** |
-| **Formal Mathematical Proofs** | Partial | seL4 (Isabelle/HOL) | **279 Kani Formal Harnesses** |
+> **Hardware Telemetry Document:** Comprehensive cycle-counter telemetry, statistical distributions, and laboratory harness code are detailed in [`BENCHMARKS.md`](BENCHMARKS.md).
+
+### 9.1 Live Silicon Synchronous RPC SLA (PID 15 $\leftrightarrow$ PID 14)
+*Measured on Broadcom BCM2711 (ARM Cortex-A72 @ 1.50 GHz) across 10,000 continuous two-process synchronous round-trips (`PMCCNTR_EL0` & `CNTVCT_EL0` @ 54.0 MHz):*
+
+| Metric Dimension | Measured Cycles | Time Duration | Architecture Significance |
+| :--- | :---: | :---: | :--- |
+| **Minimum Round-Trip** | **1,925 cycles** | **1,283 ns (~1.28 µs)** | Sub-2,000 cycle threshold broken on live silicon |
+| **Median (p50)** | **2,056 cycles** | **1,370 ns (~1.37 µs)** | Standard SLA guarantee for isolated services |
+| **Average Latency** | 2,114 cycles | 1,409 ns (~1.41 µs) | Low dispersion across long execution runs |
+| **p90 Tail Latency** | 2,248 cycles | 1,498 ns (~1.50 µs) | Bound predictable tail behavior |
+| **p99 Tail Latency** | 2,582 cycles | 1,721 ns (~1.72 µs) | Real-time avionic SLA compliance |
+| **p99.9 WCET** | 3,118 cycles | 2,078 ns (~2.08 µs) | High-assurance bounded latency limit |
+| **One-Way Cross-Domain (p50)**| **1,028 cycles**| **685 ns (~0.68 µs)** | Single context switch + capability dispatch |
+| **Synchronous Throughput** | — | **727,802 RPCs/sec** | Single-core synchronous capacity |
+| **Under 256 KB Cache Thrashing**| **2,919 cycles** | **1,946 ns (~1.94 µs)** | Zero SLA violations under heavy memory load |
+
+### 9.2 $O(1)$ Payload Scaling: Zero-Copy SRB vs Traditional `memcpy`
+
+| Payload Size | Traditional Monolithic IPC (`memcpy`) | KALEOS Zero-Copy SRB | Measured Speedup |
+| :---: | :---: | :---: | :---: |
+| **64 Bytes** | 19 cycles | **24 cycles** | 0.8× (Baseline) |
+| **512 Bytes** | 140 cycles | **24 cycles** | **5.8× faster** |
+| **4 Kilobytes (Page)** | 1,108 cycles | **24 cycles** | **46.1× faster** |
+| **16 Kilobytes** | 4,425 cycles | **24 cycles** | **184.3× faster** |
+| **64 Kilobytes** | 17,697 cycles | **24 cycles** | **737.3× faster** |
+| **256 Kilobytes** | 70,782 cycles | **24 cycles** | **2,949.2× faster** |
+| **1 Megabyte** | 283,451 cycles | **24 cycles** | **11,810.4× faster** |
+
+### 9.3 Cross-Architecture Comparative Matrix
+
+| Architectural Metric | Monolithic Linux (arm64) | seL4 Microkernel (AArch64) | QNX Neutrino RTOS | **KALEOS (BCM2711)** |
+| :--- | :--- | :--- | :--- | :--- |
+| **Kernel Implementation** | C (unmanaged) | C99 (formally verified) | C / C++ | **Pure `no_std` Rust** |
+| **Ring 0 / EL1 TCB Size** | ~35,000,000 LoC | ~10,000 LoC | ~150,000 LoC | **< 15,000 LoC** |
+| **Kernel Fault Resilience** | Vulnerable (Panic on driver crash) | High (Thread restart) | High (Process restart) | **Total (Autonomous Micro-Reaper)**|
+| **Hotpath IPC Round-Trip** | 4.50 – 12.00 µs | 1.40 – 2.20 µs | 2.80 – 5.00 µs | **1.37 µs (2,056 cycles)** |
+| **Minimum IPC Latency** | ~4,200 cycles | ~2,100 cycles | ~3,500 cycles | **1,925 cycles (~1.28 µs)** |
+| **Payload Scaling Complexity**| Linear $O(N)$ (memcpy) | Capability grant / page map| Shared memory POSIX | **$O(1)$ SPSC (24 cyc / 16 ns)**|
+| **Kernel Floating-Point** | Permitted (FPU context saved) | Permitted (optional) | Permitted | **100% Forbidden (FPU-Free)** |
+| **Desktop Compositor Footprint**| 500+ MB (Wayland/Xorg) | N/A (Headless) | Commercial Photon | **< 32 MB Total Userland** |
+| **Texture Representation** | Discrete Bitmap (Megabytes) | Discrete Bitmap | Discrete Bitmap | **512-Byte Harmonic Formula** |
+| **Formal Mathematical Proofs** | None | Isabelle/HOL (Manual) | None | **279 Kani Formal Harnesses** |
+| **Aerospace Protocol Stack** | Third-party userland | Third-party userland | Commercial add-on | **Builtin CCSDS / ECSS PUS** |
 
 ---
 

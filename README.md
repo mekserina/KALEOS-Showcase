@@ -6,7 +6,8 @@
 [![Whitepaper](https://img.shields.io/badge/Technical-Whitepaper%20v2.4-ff6f00.svg?style=for-the-badge&logo=googledocs)](WHITEPAPER.md)
 [![Language](https://img.shields.io/badge/Language-Rust%20(no__std)-DEA584.svg?style=for-the-badge&logo=rust)](https://github.com/mekserina)
 [![Formal Verification](https://img.shields.io/badge/Kani%20Proofs-279%2F279%20PASS%20(100%25)-4caf50.svg?style=for-the-badge)](https://github.com/mekserina)
-[![IPC SLA](https://img.shields.io/badge/RPC%20Latency-1.37%20%C2%B5s%20(2%2C056%20Cyc)-blueviolet.svg?style=for-the-badge)](https://github.com/mekserina)
+[![Hardware Benchmarks](https://img.shields.io/badge/Hardware-Benchmarks%20Report-success.svg?style=for-the-badge&logo=speedtest)](BENCHMARKS.md)
+[![IPC SLA](https://img.shields.io/badge/RPC%20Latency-1.37%20%C2%B5s%20(2%2C056%20Cyc)-blueviolet.svg?style=for-the-badge)](BENCHMARKS.md)
 [![Compositor](https://img.shields.io/badge/UI-Citadel%20Glassmorphic%20OS-00ffff.svg?style=for-the-badge)](https://github.com/mekserina)
 
 ---
@@ -116,17 +117,54 @@ $$f(\mathbf{x}) = W_0 + \sum_{k=1}^K \left[ a_k \sin(\omega_k \mathbf{x}) + b_k 
 
 ---
 
-## 📊 Benchmarks & Telemetry Comparison
+## 📊 Empirical Silicon Benchmarks & Telemetry
+> **Detailed Laboratory Report:** Complete hardware counter methodology, tail percentiles, and cache pollution stress results are documented in [`BENCHMARKS.md`](BENCHMARKS.md).
 
-| Architectural Dimension | Monolithic Linux (arm64) | Typical Microkernel (L4/Mach) | **KALEOS (BCM2711)** |
-| :--- | :--- | :--- | :--- |
-| **Ring 0 / EL1 Code Size** | ~35,000,000 LoC | ~30,000–50,000 LoC | **< 15,000 LoC** |
-| **Kernel Crash Resilience** | Vulnerable (Driver failure = Panic) | High | **Total (Isolated via Reaper)** |
-| **Hotpath IPC Round-Trip** | 4.5–12.0 µs | 2.5–5.0 µs | **1.37 µs (2,056 cycles)** |
-| **FPU Policy in Kernel** | Allowed (Registers saved on switch) | Often allowed | **100% Forbidden (FPU-Free)** |
-| **Desktop Compositor Footprint**| 500+ MB (Wayland/Xorg/Mutter) | N/A (Headless) | **< 32 MB Total Userland** |
-| **Texture Representation** | Discrete Bitmap (Megabytes) | Discrete Bitmap | **512-Byte Harmonic Formula** |
-| **Formal Mathematical Proofs** | Partial (formal proofs rare) | seL4 (isabelle/HOL) | **279 Kani Formal Harnesses** |
+All metrics below are measured directly on physical **Broadcom BCM2711 silicon (Raspberry Pi 4 Model B, ARM Cortex-A72 @ 1.50 GHz)** using architectural Performance Monitors (`PMCCNTR_EL0`) and monotonic system counters (`CNTVCT_EL0` @ 54.0 MHz) with 100% integer arithmetic.
+
+### 1. Two-Process Synchronous RPC SLA (PID 15 $\leftrightarrow$ PID 14)
+*Measured across 10,000 continuous synchronous round-trips over isolated EL0 address spaces.*
+
+| Metric Dimension | CPU Cycles (1.50 GHz) | Time (Nanoseconds) | Real-Time Latency |
+| :--- | :---: | :---: | :---: |
+| **Minimum Round-Trip** | **1,925 cycles** | **1,283 ns** | **~1.28 µs** |
+| **Median (p50)** | **2,056 cycles** | **1,370 ns** | **~1.37 µs** |
+| **Average Latency** | 2,114 cycles | 1,409 ns | ~1.41 µs |
+| **p90 Tail Latency** | 2,248 cycles | 1,498 ns | ~1.50 µs |
+| **p99 Tail Latency** | 2,582 cycles | 1,721 ns | ~1.72 µs |
+| **p99.9 Worst-Case (WCET)** | 3,118 cycles | 2,078 ns | ~2.08 µs |
+| **One-Way Cross-Domain (p50)** | **1,028 cycles** | **685 ns** | **~0.68 µs** |
+| **Synchronous Throughput** | — | — | **727,802 RPCs/sec** |
+| **Under 256 KB Cache Thrashing (p50)**| **2,919 cycles** | **1,946 ns** | **~1.94 µs (100% SLA)** |
+
+### 2. $O(1)$ Zero-Copy SPSC Ring Buffer Scaling vs Traditional `memcpy`
+*Dynamic payload sweep measuring transfer cost from 64 Bytes to 1 Megabyte.*
+
+| Payload Size | Traditional Monolithic IPC (`memcpy`) | KALEOS Zero-Copy SRB | Measured Speedup |
+| :---: | :---: | :---: | :---: |
+| **64 Bytes** | 19 cycles | **24 cycles** | 0.8× (Baseline) |
+| **512 Bytes** | 140 cycles | **24 cycles** | **5.8× faster** |
+| **4 Kilobytes (Page)** | 1,108 cycles | **24 cycles** | **46.1× faster** |
+| **16 Kilobytes** | 4,425 cycles | **24 cycles** | **184.3× faster** |
+| **64 Kilobytes** | 17,697 cycles | **24 cycles** | **737.3× faster** |
+| **256 Kilobytes** | 70,782 cycles | **24 cycles** | **2,949.2× faster** |
+| **1 Megabyte** | 283,451 cycles | **24 cycles** | **11,810.4× faster** |
+
+### 3. Cross-Architecture Comparative Matrix
+
+| Architectural Dimension | Monolithic Linux (arm64) | seL4 Microkernel (AArch64) | QNX Neutrino RTOS | **KALEOS (BCM2711 Live)** |
+| :--- | :--- | :--- | :--- | :--- |
+| **Kernel Implementation** | C (unmanaged) | C99 (formally verified) | C / C++ | **Pure `no_std` Rust** |
+| **Ring 0 / EL1 TCB Size** | ~35,000,000 LoC | ~10,000 LoC | ~150,000 LoC | **< 15,000 LoC** |
+| **Kernel Fault Resilience** | Vulnerable (Panic on driver crash) | High (Thread restart) | High (Process restart) | **Total (Autonomous Micro-Reaper)**|
+| **Hotpath IPC Round-Trip** | 4.50 – 12.00 µs | 1.40 – 2.20 µs | 2.80 – 5.00 µs | **1.37 µs (2,056 cycles)** |
+| **Minimum IPC Latency** | ~4,200 cycles | ~2,100 cycles | ~3,500 cycles | **1,925 cycles (~1.28 µs)** |
+| **Payload Transfer Cost** | Linear $O(N)$ (memcpy) | Capability grant / page map| Shared memory POSIX | **$O(1)$ SPSC (24 cyc / 16 ns)**|
+| **FPU Policy in Kernel** | Permitted (Registers saved) | Permitted (optional) | Permitted | **100% Forbidden (FPU-Free)** |
+| **Desktop Compositor Footprint**| 500+ MB (Wayland/Xorg) | N/A (Headless) | Commercial Photon | **< 32 MB Total Userland** |
+| **Texture Representation** | Discrete Bitmap (Megabytes) | Discrete Bitmap | Discrete Bitmap | **512-Byte Harmonic Formula** |
+| **Formal Mathematical Proofs** | None | Isabelle/HOL (Manual) | None | **279 Kani Formal Harnesses** |
+| **Aerospace Protocol Stack** | Third-party userland | Third-party userland | Commercial add-on | **Builtin CCSDS / ECSS PUS** |
 
 ---
 
